@@ -2,7 +2,7 @@
 
 Launcher C++ es un launcher hecho con Dear ImGui y DirectX 11 que puedes personalizar agregando juegos, plugins, temas y fuentes directamente desde sus carpetas, sin tocar el código. Además incluye un reproductor de música con playlist y Discord Rich Presence.
 
-(¡!)
+<img width="489" height="495" alt="Captura" src="https://github.com/user-attachments/assets/f9ff5cfb-9eb1-48e7-9af5-341122884a7a" />
 
 ---
 
