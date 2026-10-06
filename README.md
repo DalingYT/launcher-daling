@@ -123,18 +123,22 @@ Los juegos y plugins son archivos `.dll`, y eso significa que ejecutan código d
 
 Launcher C++ no existiría sin estas herramientas y librerías:
 
-- [Dear ImGui](https://github.com/ocornut/imgui), de Omar Cornut: la interfaz gráfica (licencia MIT).
-- [nlohmann/json](https://github.com/nlohmann/json), de Niels Lohmann: lectura de los archivos `.json` de temas (licencia MIT).
-- **DirectX 11** y la **API de Windows (Win32)**, de Microsoft: ventana y renderizado.
-- [discord-rpc](https://github.com/discord/discord-rpc), de Discord: Discord Rich Presence, para mostrar en tu perfil lo que estás haciendo en el Launcher (licencia MIT).
-- [RapidJSON](https://github.com/Tencent/rapidjson), de Tencent: librería JSON que usa discord-rpc (licencia MIT).
-- [miniaudio](https://github.com/mackron/miniaudio), de David Reid: reproducción de audio del reproductor de música (dominio público o MIT-0, a elección).
+* [Dear ImGui](https://github.com/ocornut/imgui), de Omar Cornut: la interfaz gráfica (licencia MIT).
+* [nlohmann/json](https://github.com/nlohmann/json), de Niels Lohmann: lectura de los archivos `.json` de temas (licencia MIT).
+* **DirectX 11** y la **API de Windows (Win32)**, de Microsoft: ventana y renderizado.
+* [discord-rpc](https://github.com/discord/discord-rpc), de Discord: Discord Rich Presence, para mostrar en tu perfil lo que estás haciendo en el Launcher (licencia MIT).
+* [RapidJSON](https://github.com/Tencent/rapidjson), de Tencent: librería JSON que usa discord-rpc (licencia MIT).
+* [miniaudio](https://github.com/mackron/miniaudio), de David Reid: reproducción de audio del reproductor de música (dominio público o MIT-0, a elección).
 
 Las licencias de estas librerías están en la carpeta [`ThirdParty-Licenses`](ThirdParty-Licenses).
 
 ### 🎵 Música
 
-"The Angel, the Demon" de **Cacola** ([@noize_princess](https://x.com/noize_princess) en X): [escúchala en Spotify](https://open.spotify.com/intl-es/album/54vSNQ8AtD0CvERwtQ3bYv?si=NmzIKnuPRm-wNy7Gz7g4_w).
+**“The Angel (A Story in 15 Parts)” — Cacola** ([@noize_princess](https://x.com/noize_princess) en X).
+
+Uso autorizado por la artista. Se incluye el crédito visible solicitado por Cacola.
+
+[Escuchar en Spotify](https://open.spotify.com/intl-es/album/54vSNQ8AtD0CvERwtQ3bYv?si=NmzIKnuPRm-wNy7Gz7g4_w) · [Publicación original en Newgrounds](https://www.newgrounds.com/audio/listen/888042)
 
 ---
 
