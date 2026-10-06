@@ -1,0 +1,32 @@
+# --- Visual Studio ---
+.vs/
+*.user
+*.suo
+*.aps
+*.ipch
+*.sdf
+*.VC.db
+*.VC.opendb
+
+# --- Compilación ---
+x64/
+x86/
+Debug/
+Release/
+*.obj
+*.res
+*.pdb
+*.ilk
+*.exp
+*.idb
+*.tlog
+*.log
+*.pch
+*.exe
+
+!discord-rpc.lib
+
+# Para no subir la música al código fuente:
+# Sounds/
+# Si la carpeta Launcher es de compilación:
+# Launcher/

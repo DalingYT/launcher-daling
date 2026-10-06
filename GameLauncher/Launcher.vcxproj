@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>18.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{607c5aa2-a510-4b81-8034-1b7c4e165851}</ProjectGuid>
+    <RootNamespace>GameFileTest</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+    <!-- Debug Win32 -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+      <ConfigurationType>Application</ConfigurationType>
+      <UseDebugLibraries>true</UseDebugLibraries>
+      <PlatformToolset>v145</PlatformToolset>
+      <CharacterSet>Unicode</CharacterSet>
+      <TargetName>Launcher</TargetName>
+    </PropertyGroup>
+
+    <!-- Release Win32 -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+      <ConfigurationType>Application</ConfigurationType>
+      <UseDebugLibraries>false</UseDebugLibraries>
+      <PlatformToolset>v145</PlatformToolset>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <CharacterSet>Unicode</CharacterSet>
+      <TargetName>Launcher</TargetName>
+    </PropertyGroup>
+
+    <!-- Debug x64 -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+      <ConfigurationType>Application</ConfigurationType>
+      <UseDebugLibraries>true</UseDebugLibraries>
+      <PlatformToolset>v145</PlatformToolset>
+      <CharacterSet>Unicode</CharacterSet>
+      <TargetName>Launcher</TargetName>
+    </PropertyGroup>
+
+    <!-- Release x64 -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+      <ConfigurationType>Application</ConfigurationType>
+      <UseDebugLibraries>false</UseDebugLibraries>
+      <PlatformToolset>v145</PlatformToolset>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <CharacterSet>Unicode</CharacterSet>
+      <TargetName>Launcher</TargetName>
+    </PropertyGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+
+  <!-- Property Sheets -->
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+            Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
+            Label="LocalAppDataPlatform" />
+  </ImportGroup>
+
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+            Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
+            Label="LocalAppDataPlatform" />
+  </ImportGroup>
+
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+            Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
+            Label="LocalAppDataPlatform" />
+  </ImportGroup>
+
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+            Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
+            Label="LocalAppDataPlatform" />
+  </ImportGroup>
+
+  <PropertyGroup Label="UserMacros" />
+
+  <!-- Debug Win32 -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>
+        WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)
+      </PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+
+  <!-- Release Win32 -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>
+        WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)
+      </PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+
+  <!-- Debug x64 -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>
+        _DEBUG;_CONSOLE;%(PreprocessorDefinitions)
+      </PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+
+      <AdditionalIncludeDirectories>
+        ..\include;
+        ..\third_party;
+        %(AdditionalIncludeDirectories)
+      </AdditionalIncludeDirectories>
+    </ClCompile>
+
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>
+        d3d11.lib;
+        dxgi.lib;
+        d3dcompiler.lib;
+        shell32.lib;
+        gdi32.lib;
+        dwmapi.lib;
+        winmm.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
+    </Link>
+
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+
+  <!-- Release x64 -->
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+
+      <PreprocessorDefinitions>
+        NDEBUG;_CONSOLE;%(PreprocessorDefinitions)
+      </PreprocessorDefinitions>
+
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+
+      <AdditionalIncludeDirectories>
+        ..\include;
+        ..\third_party;
+        %(AdditionalIncludeDirectories)
+      </AdditionalIncludeDirectories>
+    </ClCompile>
+
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+
+      <AdditionalDependencies>
+        d3d11.lib;
+        dxgi.lib;
+        d3dcompiler.lib;
+        shell32.lib;
+        gdi32.lib;
+        dwmapi.lib;
+        winmm.lib;
+        Advapi32.lib;
+        %(AdditionalDependencies)
+      </AdditionalDependencies>
+    </Link>
+
+    <Manifest>
+      <EnableSegmentHeap>true</EnableSegmentHeap>
+    </Manifest>
+  </ItemDefinitionGroup>
+
+  <!-- ========================= -->
+  <!-- SOURCE FILES (.cpp)       -->
+  <!-- ========================= -->
+
+  <ItemGroup>
+
+    <!-- Tu código -->
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\LauncherManager.cpp" />
+
+    <!-- Discord RPC -->
+    <ClCompile Include="..\third_party\Discord\connection_win.cpp" />
+    <ClCompile Include="..\third_party\Discord\discord_register_win.cpp" />
+    <ClCompile Include="..\third_party\Discord\discord_rpc.cpp" />
+    <ClCompile Include="..\third_party\Discord\rpc_connection.cpp" />
+    <ClCompile Include="..\third_party\Discord\serialization.cpp" />
+
+    <!-- Dear ImGui -->
+    <ClCompile Include="..\third_party\imgui\imgui.cpp" />
+    <ClCompile Include="..\third_party\imgui\imgui_demo.cpp" />
+    <ClCompile Include="..\third_party\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\third_party\imgui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="..\third_party\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\third_party\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\third_party\imgui\imgui_widgets.cpp" />
+
+  </ItemGroup>
+
+  <!-- ========================= -->
+  <!-- HEADER FILES (.h/.hpp)   -->
+  <!-- ========================= -->
+
+  <ItemGroup>
+
+    <!-- Tu código -->
+    <ClInclude Include="..\include\GameAPI.h" />
+    <ClInclude Include="..\include\LauncherManager.h" />
+    <ClInclude Include="..\include\resource.h" />
+
+    <!-- MiniAudio -->
+    <ClInclude Include="..\include\AudioPlayer.h" />
+    <ClInclude Include="..\third_party\MiniAudio\miniaudio.h" />
+
+    <!-- Discord RPC -->
+    <ClInclude Include="..\third_party\Discord\backoff.h" />
+    <ClInclude Include="..\third_party\Discord\connection.h" />
+    <ClInclude Include="..\third_party\Discord\discord_register.h" />
+    <ClInclude Include="..\third_party\Discord\discord_rpc.h" />
+    <ClInclude Include="..\third_party\Discord\DiscordPresence.h" />
+    <ClInclude Include="..\third_party\Discord\msg_queue.h" />
+    <ClInclude Include="..\third_party\Discord\rpc_connection.h" />
+    <ClInclude Include="..\third_party\Discord\serialization.h" />
+
+    <!-- Dear ImGui -->
+    <ClInclude Include="..\third_party\imgui\imconfig.h" />
+    <ClInclude Include="..\third_party\imgui\imgui.h" />
+    <ClInclude Include="..\third_party\imgui\imgui_impl_dx11.h" />
+    <ClInclude Include="..\third_party\imgui\imgui_impl_win32.h" />
+    <ClInclude Include="..\third_party\imgui\imgui_internal.h" />
+    <ClInclude Include="..\third_party\imgui\imstb_rectpack.h" />
+    <ClInclude Include="..\third_party\imgui\imstb_textedit.h" />
+    <ClInclude Include="..\third_party\imgui\imstb_truetype.h" />
+
+    <!-- nlohmann/json -->
+    <ClInclude Include="..\third_party\nlohmann\json.hpp" />
+
+    <!-- RapidJSON -->
+    <ClInclude Include="..\third_party\rapidjson\allocators.h" />
+    <ClInclude Include="..\third_party\rapidjson\cursorstreamwrapper.h" />
+    <ClInclude Include="..\third_party\rapidjson\document.h" />
+    <ClInclude Include="..\third_party\rapidjson\encodedstream.h" />
+    <ClInclude Include="..\third_party\rapidjson\encodings.h" />
+    <ClInclude Include="..\third_party\rapidjson\filereadstream.h" />
+    <ClInclude Include="..\third_party\rapidjson\filewritestream.h" />
+    <ClInclude Include="..\third_party\rapidjson\fwd.h" />
+    <ClInclude Include="..\third_party\rapidjson\istreamwrapper.h" />
+    <ClInclude Include="..\third_party\rapidjson\memorybuffer.h" />
+    <ClInclude Include="..\third_party\rapidjson\memorystream.h" />
+    <ClInclude Include="..\third_party\rapidjson\ostreamwrapper.h" />
+    <ClInclude Include="..\third_party\rapidjson\pointer.h" />
+    <ClInclude Include="..\third_party\rapidjson\prettywriter.h" />
+    <ClInclude Include="..\third_party\rapidjson\rapidjson.h" />
+    <ClInclude Include="..\third_party\rapidjson\reader.h" />
+    <ClInclude Include="..\third_party\rapidjson\schema.h" />
+    <ClInclude Include="..\third_party\rapidjson\stream.h" />
+    <ClInclude Include="..\third_party\rapidjson\stringbuffer.h" />
+    <ClInclude Include="..\third_party\rapidjson\uri.h" />
+    <ClInclude Include="..\third_party\rapidjson\writer.h" />
+
+    <ClInclude Include="..\third_party\rapidjson\error\en.h" />
+    <ClInclude Include="..\third_party\rapidjson\error\error.h" />
+
+    <ClInclude Include="..\third_party\rapidjson\internal\biginteger.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\clzll.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\diyfp.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\dtoa.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\ieee754.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\itoa.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\meta.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\pow10.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\regex.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\stack.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\strfunc.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\strtod.h" />
+    <ClInclude Include="..\third_party\rapidjson\internal\swap.h" />
+
+    <ClInclude Include="..\third_party\rapidjson\msinttypes\inttypes.h" />
+    <ClInclude Include="..\third_party\rapidjson\msinttypes\stdint.h" />
+
+  </ItemGroup>
+
+  <!-- ========================= -->
+  <!-- WINDOWS RESOURCE FILE    -->
+  <!-- ========================= -->
+
+  <ItemGroup>
+    <ResourceCompile Include="..\include\resource.rc" />
+  </ItemGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+
+</Project>
