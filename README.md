@@ -20,7 +20,7 @@ Launcher C++ es un launcher hecho con Dear ImGui y DirectX 11 que puedes persona
 
 ## 📦 Instalación
 
-1. Descarga el Launcher desde [el repositorio](https://github.com/DalingYT/launcher-daling).
+1. Descarga el Launcher desde [el repositorio](https://github.com/DalingYT/launcher-daling/releases/tag/v1.0.0).
 2. Extrae los archivos en la carpeta que quieras.
 3. Ejecuta `Launcher.exe`.
 
@@ -109,7 +109,7 @@ Revisa los logs en la carpeta `/ErrorLog`; ahí estará la causa del error.
 1. Si fue por un juego, retíralo de `/Games` e intenta de nuevo.
 2. Si fue por un plugin, retíralo de `/Plugins` e intenta de nuevo.
 3. Si fue por un tema, retíralo de `/Theme` e intenta de nuevo.
-4. Si nada de esto funciona, reinstala el Launcher completo desde [aquí](https://github.com/DalingYT/launcher-daling).
+4. Si nada de esto funciona, reinstala el Launcher completo desde [aquí](https://github.com/DalingYT/launcher-daling/releases/tag/v1.0.0).
 
 ---
 
