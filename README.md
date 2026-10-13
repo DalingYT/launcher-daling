@@ -134,11 +134,11 @@ Las licencias de estas librerías están en la carpeta [`ThirdParty-Licenses`](T
 
 ### 🎵 Música
 
-**“The Angel (A Story in 15 Parts)” — Cacola** ([@noize_princess](https://x.com/noize_princess) en X).
+**“The Days Go By” — Cacola** ([@noize_princess](https://x.com/noize_princess) en X).
 
 Uso autorizado por la artista. Se incluye el crédito visible solicitado por Cacola.
 
-[Escuchar en Spotify](https://open.spotify.com/intl-es/album/54vSNQ8AtD0CvERwtQ3bYv?si=NmzIKnuPRm-wNy7Gz7g4_w) · [Publicación original en Newgrounds](https://www.newgrounds.com/audio/listen/888042)
+[Escuchar en Spotify](https://open.spotify.com/intl-es/track/5zJ0y2m1GaIb3yT0hvM89D?si=af8ac7a14a6d42e1) · [Publicación original en Newgrounds](https://www.newgrounds.com/audio/listen/708301)
 
 ---
 
