@@ -77,11 +77,11 @@ std::string FormatearTiempo(float segundos) {
     return std::string(buffer);
 }
 
-// Creditos a Cacola por el album The Angel, the Demon confirmado 100% via Discord creeme por favor es 100% real no fake
-static const char* NOMBRE_ARCHIVO_CON_CREDITO = "TheAngelTheDemon";
+// Creditos a Cacola por la canción The Days Go By confirmado 100% via Discord creeme por favor es 100% real no fake
+static const char* NOMBRE_ARCHIVO_CON_CREDITO = "The Days Go By";
 static const char* CREDITO_MUSICA =
-"Musica: \"The Angel, the Demon\" by: Cacola (@noize_princess on X) "
-"(https://open.spotify.com/intl-es/album/54vSNQ8AtD0CvERwtQ3bYv?si=NmzIKnuPRm-wNy7Gz7g4_w)";
+"Música: \"The Days Go By\" by: Cacola (@noize_princess on X) "
+"(https://www.newgrounds.com/audio/listen/708301)";
 
 // -------------------- Variables globales de DirectX --------------------
 static ID3D11Device* g_pd3dDevice = nullptr;
@@ -136,7 +136,7 @@ void GuardarErrorLog(const std::string& carpetaErrorLog, const std::string& dll,
         log << "ERROR: No se pudo cargar la DLL del juego\n";
         log << "Archivo: " << dll << "\n";
         log << "Fecha y hora: " << buffer << "\n";
-        log << "Razon: " << razon << "\n";
+        log << "Razón: " << razon << "\n";
         log.close();
     }
 }
@@ -164,7 +164,7 @@ std::vector<JuegoPlugin> EscanearYCargarJuegos(const std::string& carpetaGames, 
 
         HMODULE handle = ::LoadLibraryW(rutaW.c_str());
         if (!handle) {
-            GuardarErrorLog(carpetaErrorLog, archivo, "LoadLibrary fallo (la DLL puede estar corrupta o le faltan dependencias).");
+            GuardarErrorLog(carpetaErrorLog, archivo, "LoadLibrary falló (la DLL puede estar corrupta o le faltan dependencias).");
             continue;
         }
 
@@ -230,6 +230,7 @@ void ActualizarPresenceDelJuego(const JuegoPlugin& juego) {
     g_discord.MostrarJugandoDetallado(juego.nombreMostrado, detalle, estadoExtra);
 }
 
+
 // -------------------- main --------------------
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
 
@@ -238,45 +239,69 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
     // =========================================================
     CarpetasLauncher::VerificarYCrear();
 
-    // Rutas base (equivalente a CARPETA = os.getcwd() en Python)
+    // Rutas base
     std::string carpetaBase = fs::current_path().string();
     std::string carpetaGames = carpetaBase + "\\Games";
     std::string carpetaErrorLog = carpetaBase + "\\ErrorLog";
     std::string carpetaSounds = carpetaBase + "\\Sounds";
+
     fs::create_directories(carpetaErrorLog);
     fs::create_directories(carpetaGames);
     fs::create_directories(carpetaSounds);
 
-    std::vector<JuegoPlugin> juegosCargados = EscanearYCargarJuegos(carpetaGames, carpetaErrorLog);
+    std::vector<JuegoPlugin> juegosCargados =
+        EscanearYCargarJuegos(carpetaGames, carpetaErrorLog);
     g_juegos = juegosCargados;
 
-    // Carga el icono desde tus recursos
-    HICON hIcon = LoadIcon(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_ICON1));
+    // -------------------- Carga de iconos --------------------
+    HINSTANCE hInst = hInstance;
 
-    WNDCLASSEXW wc = {
-        sizeof(wc),
-        CS_CLASSDC,
-        WndProc,
-        0L,
-        0L,
-        GetModuleHandle(nullptr),
-        hIcon,          // <--- Asigna el icono aquí (Grande)
-        nullptr,
-        nullptr,
-        nullptr,
-        L"LauncherCPPClass",
-        hIcon           // <--- Asigna el mismo icono aquí (Pequeño/Barra de tareas)
-    };
+    // Icono grande (32x32)
+    HICON hIcon = (HICON)LoadImageW(
+        hInst,
+        MAKEINTRESOURCEW(IDI_ICON1),
+        IMAGE_ICON,
+        32, 32,
+        LR_DEFAULTCOLOR | LR_SHARED
+    );
+
+    // Icono pequeño (16x16 - junto al nombre de la ventana)
+    HICON hIconSmall = (HICON)LoadImageW(
+        hInst,
+        MAKEINTRESOURCEW(IDI_ICON1),
+        IMAGE_ICON,
+        16, 16,
+        LR_DEFAULTCOLOR | LR_SHARED
+    );
+
+    // -------------------- Registro de la ventana --------------------
+    WNDCLASSEXW wc = {};
+    wc.cbSize        = sizeof(WNDCLASSEXW);
+    wc.style         = CS_CLASSDC;
+    wc.lpfnWndProc   = WndProc;
+    wc.hInstance     = hInst;
+    wc.hIcon         = hIcon;
+    wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
+    wc.lpszClassName = L"LauncherCPPClass";
+    wc.hIconSm       = hIconSmall;
 
     ::RegisterClassExW(&wc);
 
     HWND hwnd = ::CreateWindowW(
         wc.lpszClassName, L"Launcher - Daling",
-        WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX & ~WS_THICKFRAME, // tamaño fijo, como tu Python (resizable=False)
+        WS_OVERLAPPEDWINDOW,
         100, 100,
         500, 500,
         nullptr, nullptr, wc.hInstance, nullptr
     );
+
+    // --- FORZAR ICONOS EXPLÍCITAMENTE ---
+    if (hIcon) {
+        ::SendMessageW(hwnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+    }
+    if (hIconSmall) {
+        ::SendMessageW(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)hIconSmall);
+    }
 
     if (!CreateDeviceD3D(hwnd)) {
         CleanupDeviceD3D();
@@ -399,16 +424,15 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
             ImGuiWindowFlags_MenuBar);
 
         // ===================================================================
-        //  PANTALLA: MENU PRINCIPAL
+        //  MODO PANELES: si la ventana esta MAXIMIZADA (y no estamos dentro
+        //  de un juego), se muestra todo junto:
+        //      [ Juegos ]  [ Reproductor ]
+        //      [ Juegos ]  [ Info / extra ]
         // ===================================================================
-        if (g_pantallaActual == Pantalla::MENU) {
+        const bool modoPaneles = (::IsZoomed(hwnd) != 0) && g_pantallaActual != Pantalla::JUGANDO;
 
-            ImGui::TextColored(ImVec4(1, 1, 1, 1), "Launcher");
-            ImGui::Separator();
-            ImGui::Spacing();
-
-            ImGui::BeginChild("ScrollGames", ImVec2(0, -60), true);
-
+        // ---- Botones de los juegos (se usa en el menu normal y en el panel izquierdo) ----
+        auto dibujarListaJuegos = [&]() {
             if (g_juegos.empty()) {
                 ImGui::TextWrapped("No hay juegos (.dll) en la carpeta Games.\nCompila uno con la plantilla y ponlo ahi.");
             }
@@ -425,51 +449,13 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
                 }
                 ImGui::Spacing();
             }
+        };
 
-            ImGui::EndChild();
+        // ---- Reproductor (pantalla completa o panel arriba-derecha) ----
+        // conBotonVolver = true solo cuando es una pantalla aparte.
+        auto dibujarReproductor = [&](bool conBotonVolver) {
 
-            ImGui::Spacing();
-
-            // ---- Botones lado a lado: Reproductor + YouTube ----
-            float anchoMitad = (ImGui::GetContentRegionAvail().x - 8) / 2.0f;
-
-            if (g_audio.HayPlaylist()) {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.45f, 0.85f, 1.0f));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.32f, 0.52f, 0.92f, 1.0f));
-                if (ImGui::Button("Reproductor", ImVec2(anchoMitad, 40))) {
-                    g_pantallaActual = Pantalla::REPRODUCTOR;
-                    g_discord.MostrarEscuchandoMusica(g_audio.NombreCancionActual());
-                }
-                ImGui::PopStyleColor(2);
-                ImGui::SameLine();
-            }
-
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.0f, 0.0f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.1f, 0.1f, 1.0f));
-            if (ImGui::Button("YouTube", ImVec2(g_audio.HayPlaylist() ? anchoMitad : -1, 40))) {
-                ShellExecuteA(nullptr, "open", "https://www.youtube.com/@DalingYT", nullptr, nullptr, SW_SHOWNORMAL);
-            }
-            ImGui::PopStyleColor(2);
-        }
-
-        // ===================================================================
-        //  PANTALLA: JUGANDO (el juego activo dibuja su propia UI aqui)
-        // ===================================================================
-        else if (g_pantallaActual == Pantalla::JUGANDO && g_indiceJuegoActivo >= 0) {
-            bool pidioVolver = g_juegos[g_indiceJuegoActivo].dibujar(); // Juego_Dibujar()
-            if (pidioVolver) {
-                g_pantallaActual = Pantalla::MENU;
-                g_indiceJuegoActivo = -1;
-                g_discord.MostrarEnMenu();
-            }
-        }
-
-        // ===================================================================
-        //  PANTALLA: REPRODUCTOR DE MUSICA
-        // ===================================================================
-        else if (g_pantallaActual == Pantalla::REPRODUCTOR) {
-
-            ImGui::TextColored(ImVec4(1, 1, 1, 1), "Reproductor de Musica");
+            ImGui::TextColored(ImVec4(1, 1, 1, 1), "Reproductor de Música");
             ImGui::Separator();
             ImGui::Spacing();
             ImGui::Spacing();
@@ -523,7 +509,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
             }
 
             bool repetirUna = g_audio.GetSoloUnaCancionEnLoop();
-            if (ImGui::Checkbox("Repetir solo esta cancion", &repetirUna)) {
+            if (ImGui::Checkbox("Repetir solo esta canción", &repetirUna)) {
                 g_audio.SetSoloUnaCancionEnLoop(repetirUna);
             }
 
@@ -546,13 +532,182 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int) {
                 ImGui::Spacing();
             }
 
+            if (conBotonVolver) {
+                ImGui::Separator();
+                ImGui::Spacing();
+
+                if (ImGui::Button("Volver al menu", ImVec2(150, 35))) {
+                    g_pantallaActual = Pantalla::MENU;
+                    g_discord.MostrarEnMenu();
+                }
+            }
+        };
+
+        // ---- Panel de abajo-derecha (solo en modo paneles): pestanas ----
+        //  Pestana 1: ChangeLog   |   Pestana 2: Redes sociales
+        auto dibujarPanelExtra = [&]() {
+
+            // Boton que abre un enlace en el navegador
+            auto botonRed = [&](const char* nombre, const char* url, ImVec4 color, ImVec4 colorHover) {
+                ImGui::PushStyleColor(ImGuiCol_Button, color);
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colorHover);
+                if (ImGui::Button(nombre, ImVec2(-1, 40))) {
+                    ShellExecuteA(nullptr, "open", url, nullptr, nullptr, SW_SHOWNORMAL);
+                }
+                ImGui::PopStyleColor(2);
+                ImGui::Spacing();
+            };
+
+            // Una linea del changelog con vineta
+            auto linea = [&](const char* texto) {
+                ImGui::Bullet();
+                ImGui::TextWrapped("%s", texto);
+            };
+
+            if (ImGui::BeginTabBar("PestanasExtra")) {
+
+                // ---------------- Pestana: ChangeLog ----------------
+                if (ImGui::BeginTabItem("ChangeLog")) {
+                    ImGui::BeginChild("ScrollChangelog", ImVec2(0, 0), false);
+
+                    ImGui::TextColored(ImVec4(0.45f, 0.65f, 1.0f, 1.0f), "v1.1.0 - 12/10/2026");
+                    linea("Soporte para música .ogg");
+                    linea("La barra del reproductor muestra la duración real de los .ogg");
+                    linea("Ventana redimensionable y maximizable");
+                    linea("Al maximizar: paneles de juegos, reproductor y extras");
+                    linea("Pestañas de ChangeLog y Redes sociales");
+                    linea("Correcciones ortográficas y adición de acentos");
+
+                    ImGui::Spacing();
+                    ImGui::Separator();
+                    ImGui::Spacing();
+
+                    ImGui::TextColored(ImVec4(0.45f, 0.65f, 1.0f, 1.0f), "v1.0.0 - Primera versión pública - 7/10/2026");
+                    linea("Juegos como archivos .dll");
+                    linea("Temas personalizados");
+                    linea("Reproductor de música con playlist");
+                    linea("Discord Rich Presence");
+                    linea("GameAPI.h y juegos de ejemplo");
+
+                    ImGui::EndChild();
+                    ImGui::EndTabItem();
+                }
+
+                // ---------------- Pestana: Redes sociales ----------------
+                if (ImGui::BeginTabItem("Redes sociales")) {
+                    ImGui::Spacing();
+
+                    botonRed("YouTube", "https://www.youtube.com/@DalingYT",
+                        ImVec4(0.8f, 0.0f, 0.0f, 1.0f), ImVec4(0.9f, 0.1f, 0.1f, 1.0f));
+
+                    botonRed("Discord", "https://discord.gg/gMcGegS55y",
+                        ImVec4(0.35f, 0.40f, 0.95f, 1.0f), ImVec4(0.42f, 0.47f, 1.0f, 1.0f));
+
+                    botonRed("GitHub", "https://github.com/DalingYT/launcher-daling",
+                        ImVec4(0.22f, 0.22f, 0.25f, 1.0f), ImVec4(0.32f, 0.32f, 0.36f, 1.0f));
+
+                    ImGui::EndTabItem();
+                }
+
+                ImGui::EndTabBar();
+            }
+        };
+
+        // ===================================================================
+        //  MAXIMIZADA: LAYOUT DE PANELES
+        // ===================================================================
+        if (modoPaneles) {
+            ImVec2 area = ImGui::GetContentRegionAvail();
+            float espacio = ImGui::GetStyle().ItemSpacing.x;
+            float anchoIzq = (area.x - espacio) * 0.35f;
+
+            // ---- Izquierda: juegos ----
+            ImGui::BeginChild("PanelJuegos", ImVec2(anchoIzq, 0), true);
+            ImGui::TextColored(ImVec4(1, 1, 1, 1), "Juegos");
+            ImGui::Separator();
+            ImGui::Spacing();
+            dibujarListaJuegos();
+            ImGui::EndChild();
+
+            ImGui::SameLine();
+
+            // ---- Derecha: dos paneles apilados ----
+            ImGui::BeginChild("ColumnaDerecha", ImVec2(0, 0), false);
+            float altoMitad = (ImGui::GetContentRegionAvail().y - ImGui::GetStyle().ItemSpacing.y) * 0.5f;
+
+            ImGui::BeginChild("PanelReproductor", ImVec2(0, altoMitad), true);
+            if (g_audio.HayPlaylist()) {
+                dibujarReproductor(false);
+            }
+            else {
+                ImGui::TextColored(ImVec4(1, 1, 1, 1), "Reproductor de Musica");
+                ImGui::Separator();
+                ImGui::Spacing();
+                ImGui::TextWrapped("No hay música. Pon archivos .mp3, .wav, .ogg o .flac en la carpeta Sounds.");
+            }
+            ImGui::EndChild();
+
+            ImGui::BeginChild("PanelExtra", ImVec2(0, 0), true);
+            dibujarPanelExtra();
+            ImGui::EndChild();
+
+            ImGui::EndChild(); // ColumnaDerecha
+        }
+
+        // ===================================================================
+        //  PANTALLA: MENU PRINCIPAL
+        // ===================================================================
+        else if (g_pantallaActual == Pantalla::MENU) {
+
+            ImGui::TextColored(ImVec4(1, 1, 1, 1), "Launcher");
             ImGui::Separator();
             ImGui::Spacing();
 
-            if (ImGui::Button("Volver al menu", ImVec2(150, 35))) {
+            ImGui::BeginChild("ScrollGames", ImVec2(0, -60), true);
+            dibujarListaJuegos();
+            ImGui::EndChild();
+
+            ImGui::Spacing();
+
+            // ---- Botones lado a lado: Reproductor + YouTube ----
+            float anchoMitad = (ImGui::GetContentRegionAvail().x - 8) / 2.0f;
+
+            if (g_audio.HayPlaylist()) {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.45f, 0.85f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.32f, 0.52f, 0.92f, 1.0f));
+                if (ImGui::Button("Reproductor", ImVec2(anchoMitad, 40))) {
+                    g_pantallaActual = Pantalla::REPRODUCTOR;
+                    g_discord.MostrarEscuchandoMusica(g_audio.NombreCancionActual());
+                }
+                ImGui::PopStyleColor(2);
+                ImGui::SameLine();
+            }
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.0f, 0.0f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.9f, 0.1f, 0.1f, 1.0f));
+            if (ImGui::Button("YouTube", ImVec2(g_audio.HayPlaylist() ? anchoMitad : -1, 40))) {
+                ShellExecuteA(nullptr, "open", "https://www.youtube.com/@DalingYT", nullptr, nullptr, SW_SHOWNORMAL);
+            }
+            ImGui::PopStyleColor(2);
+        }
+
+        // ===================================================================
+        //  PANTALLA: JUGANDO (el juego activo dibuja su propia UI aqui)
+        // ===================================================================
+        else if (g_pantallaActual == Pantalla::JUGANDO && g_indiceJuegoActivo >= 0) {
+            bool pidioVolver = g_juegos[g_indiceJuegoActivo].dibujar(); // Juego_Dibujar()
+            if (pidioVolver) {
                 g_pantallaActual = Pantalla::MENU;
+                g_indiceJuegoActivo = -1;
                 g_discord.MostrarEnMenu();
             }
+        }
+
+        // ===================================================================
+        //  PANTALLA: REPRODUCTOR DE MUSICA (pantalla completa, ventana normal)
+        // ===================================================================
+        else if (g_pantallaActual == Pantalla::REPRODUCTOR) {
+            dibujarReproductor(true);
         }
 
         ImGui::End();
@@ -673,6 +828,14 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
             CreateRenderTarget();
         }
         return 0;
+    case WM_GETMINMAXINFO: {
+        // Tamano minimo de la ventana: el mismo con el que se abre (500x500),
+        // para que la interfaz no se rompa si la achican demasiado.
+        MINMAXINFO* mmi = (MINMAXINFO*)lParam;
+        mmi->ptMinTrackSize.x = 500;
+        mmi->ptMinTrackSize.y = 500;
+        return 0;
+    }
     case WM_SYSCOMMAND:
         if ((wParam & 0xfff0) == SC_KEYMENU) // bloquea menu de Alt
             return 0;

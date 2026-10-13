@@ -2,11 +2,19 @@
 //  AudioPlayer.h
 //  Reproductor de musica con playlist, usando miniaudio.
 //
-//  Soporta: MP3, WAV, OGG, FLAC (lo que miniaudio soporta de fabrica)
+//  Soporta: MP3, WAV, FLAC (miniaudio) y OGG (con stb_vorbis.c)
 //  Funciones: reproducir, pausar, siguiente, anterior, loop infinito,
 //             orden aleatorio (shuffle), posicion/duracion en segundos.
 // =========================================================
 #pragma once
+
+#pragma once
+
+#define STB_VORBIS_NO_INTEGER_CONVERSION
+#include "../third_party/stb/stb_vorbis.c"
+#undef L
+#undef C
+#undef R
 
 #define MINIAUDIO_IMPLEMENTATION
 #include "../third_party/MiniAudio/miniaudio.h"
@@ -17,30 +25,35 @@
 #include <algorithm>
 #include <random>
 #include <ctime>
+#include <cctype>
+#include <chrono>
 
 namespace fs = std::filesystem;
 
 class AudioPlayer {
 public:
-    // Extensiones que vamos a aceptar como "musica" al escanear Sounds/.
-    // miniaudio soporta mas formatos, pero limitamos a estos por pedido.
     static bool EsFormatoSoportado(const std::string& extension) {
-        return extension == ".mp3" || extension == ".wav" ||
-            extension == ".ogg" || extension == ".flac";
+        return extension == ".mp3" ||
+               extension == ".wav" ||
+               extension == ".ogg" ||
+               extension == ".flac";
     }
 
-    // Inicializa el motor de audio. Se llama UNA VEZ, al abrir el launcher.
     bool Iniciar() {
+        if (motorListo) return true;
+
         ma_result resultado = ma_engine_init(nullptr, &motor);
         if (resultado != MA_SUCCESS) return false;
+
         motorListo = true;
         return true;
     }
 
-    // Escanea la carpeta Sounds/ buscando archivos de audio soportados,
-    // y construye la playlist. NO empieza a reproducir todavia.
     void CargarPlaylist(const std::string& carpetaSounds) {
         playlist.clear();
+        ordenAleatorio.clear();
+        indiceActual = -1;
+        posicionEnOrdenAleatorio = 0;
 
         if (!fs::exists(carpetaSounds)) {
             fs::create_directories(carpetaSounds);
@@ -51,136 +64,217 @@ public:
             if (!entry.is_regular_file()) continue;
 
             std::string ext = entry.path().extension().string();
-            // Pasamos la extension a minusculas para comparar sin distinguir mayusculas
-            std::transform(ext.begin(), ext.end(), ext.begin(),
-                [](unsigned char c) { return std::tolower(c); });
+
+            std::transform(
+                ext.begin(), ext.end(), ext.begin(),
+                [](unsigned char c) {
+                    return static_cast<char>(std::tolower(c));
+                }
+            );
 
             if (EsFormatoSoportado(ext)) {
                 CancionInfo info;
                 info.ruta = entry.path().string();
-                info.nombreMostrado = entry.path().stem().string(); // nombre sin extension
+                info.nombreMostrado = entry.path().stem().string();
                 playlist.push_back(info);
             }
         }
 
-        // Armamos tambien un orden "aleatorio" base, para el modo shuffle.
         ordenAleatorio.resize(playlist.size());
-        for (size_t i = 0; i < playlist.size(); ++i) ordenAleatorio[i] = (int)i;
+
+        for (size_t i = 0; i < playlist.size(); ++i) {
+            ordenAleatorio[i] = static_cast<int>(i);
+        }
     }
 
-    // Empieza a reproducir la cancion en el indice dado de la playlist (orden normal).
     bool ReproducirIndice(int indice) {
         if (!motorListo || playlist.empty()) return false;
-        if (indice < 0 || indice >= (int)playlist.size()) return false;
+        if (indice < 0 || indice >= static_cast<int>(playlist.size()))
+            return false;
 
         DetenerYLiberarSonidoActual();
 
         ma_result resultado = ma_sound_init_from_file(
-            &motor, playlist[indice].ruta.c_str(),
-            MA_SOUND_FLAG_STREAM, nullptr, nullptr, &sonidoActual
+            &motor,
+            playlist[indice].ruta.c_str(),
+            MA_SOUND_FLAG_STREAM,
+            nullptr,
+            nullptr,
+            &sonidoActual
         );
+
         if (resultado != MA_SUCCESS) return false;
 
         sonidoCargado = true;
         indiceActual = indice;
-        ma_sound_set_looping(&sonidoActual, soloUnaCancionEnLoop ? MA_TRUE : MA_FALSE);
+        fadeSalidaIniciado = false;
+        cambioPendiente = false;
+        duracionRespaldo = 0.0f;
+
+        ma_sound_set_looping(
+            &sonidoActual,
+            soloUnaCancionEnLoop ? MA_TRUE : MA_FALSE
+        );
+
+        // Fade-in: silencio -> volumen normal.
+        ma_sound_set_fade_in_milliseconds(
+            &sonidoActual,
+            0.0f,
+            1.0f,
+            static_cast<ma_uint64>(duracionFade * 1000.0f)
+        );
+
         ma_sound_start(&sonidoActual);
+
+        // Respaldo para archivos OGG sin duración reportada.
+        float duracion = 0.0f;
+
+        if (ma_sound_get_length_in_seconds(
+                &sonidoActual, &duracion) != MA_SUCCESS ||
+            duracion <= 0.0f) {
+
+            int error = 0;
+
+            stb_vorbis* vorbis = stb_vorbis_open_filename(
+                playlist[indice].ruta.c_str(),
+                &error,
+                nullptr
+            );
+
+            if (vorbis) {
+                stb_vorbis_info info = stb_vorbis_get_info(vorbis);
+                unsigned int muestras =
+                    stb_vorbis_stream_length_in_samples(vorbis);
+
+                if (info.sample_rate > 0) {
+                    duracionRespaldo =
+                        static_cast<float>(muestras) /
+                        static_cast<float>(info.sample_rate);
+                }
+
+                stb_vorbis_close(vorbis);
+            }
+        }
+
         return true;
     }
 
-    // Empieza la playlist desde el principio (o desde un orden aleatorio si shuffle esta activo).
     void ReproducirDesdeElInicio() {
         if (playlist.empty()) return;
 
         if (modoAleatorio) {
             BarajearOrden();
-            ReproducirIndice(ordenAleatorio[0]);
             posicionEnOrdenAleatorio = 0;
+            ReproducirIndice(ordenAleatorio[0]);
         }
         else {
             ReproducirIndice(0);
         }
     }
 
-    // -----------------------------------------------------------------
-    //  Llamar UNA VEZ POR FRAME. Revisa si la cancion actual termino,
-    //  y si "escuchar infinitamente" (modo playlist en loop) esta activo,
-    //  pasa automaticamente a la siguiente.
-    // -----------------------------------------------------------------
+    // Llamar una vez por frame.
     void Actualizar() {
         if (!sonidoCargado || playlist.empty()) return;
 
-        bool yaTermino = ma_sound_at_end(&sonidoActual);
-        if (yaTermino && !soloUnaCancionEnLoop) {
-            Siguiente(); // avanza solita a la siguiente cancion
+        // Esperar a que termine el fade-out de un cambio manual
+        // o automático antes de sustituir el sonido.
+        if (cambioPendiente) {
+            auto ahora = std::chrono::steady_clock::now();
+
+            float transcurrido = std::chrono::duration<float>(
+                ahora - inicioCambio
+            ).count();
+
+            if (transcurrido >= duracionFade) {
+                int destino = indicePendiente;
+                cambioPendiente = false;
+                ReproducirIndice(destino);
+            }
+
+            return;
+        }
+
+        if (soloUnaCancionEnLoop) return;
+
+        float duracion = DuracionEnSegundos();
+        float posicion = SegundosTranscurridos();
+
+        // Iniciar fade-out antes de que termine la canción.
+        if (!fadeSalidaIniciado &&
+            duracion > 0.0f &&
+            posicion >= duracion - duracionFade) {
+
+            int siguiente = ObtenerSiguienteIndice();
+
+            if (siguiente >= 0) {
+                ProgramarCambio(siguiente);
+                return;
+            }
+
+            // No hay siguiente canción: terminar suavemente.
+            fadeSalidaIniciado = true;
+
+            ma_sound_set_fade_in_milliseconds(
+                &sonidoActual,
+                1.0f,
+                0.0f,
+                static_cast<ma_uint64>(duracionFade * 1000.0f)
+            );
+        }
+
+        if (ma_sound_at_end(&sonidoActual)) {
+            Siguiente();
         }
     }
 
-    // Pasa a la siguiente cancion. Si "loopInfinito" esta activo y llegamos
-    // al final de la playlist, regresamos a la cancion 0 (loop de toda la lista).
     void Siguiente() {
         if (playlist.empty()) return;
 
-        if (modoAleatorio) {
-            posicionEnOrdenAleatorio++;
-            if (posicionEnOrdenAleatorio >= (int)ordenAleatorio.size()) {
-                if (!loopInfinitoPlaylist) return; // se acabo la playlist y no hay loop
-                BarajearOrden();
-                posicionEnOrdenAleatorio = 0;
-            }
-            ReproducirIndice(ordenAleatorio[posicionEnOrdenAleatorio]);
-        }
-        else {
-            int siguiente = indiceActual + 1;
-            if (siguiente >= (int)playlist.size()) {
-                if (!loopInfinitoPlaylist) return;
-                siguiente = 0;
-            }
-            ReproducirIndice(siguiente);
+        int siguiente = ObtenerSiguienteIndice();
+
+        if (siguiente >= 0) {
+            ProgramarCambio(siguiente);
         }
     }
 
-    // Regresa a la cancion anterior. Si estamos al inicio y hay loop, va a la ultima.
     void Anterior() {
         if (playlist.empty()) return;
 
-        if (modoAleatorio) {
-            posicionEnOrdenAleatorio--;
-            if (posicionEnOrdenAleatorio < 0) {
-                if (!loopInfinitoPlaylist) { posicionEnOrdenAleatorio = 0; return; }
-                posicionEnOrdenAleatorio = (int)ordenAleatorio.size() - 1;
-            }
-            ReproducirIndice(ordenAleatorio[posicionEnOrdenAleatorio]);
-        }
-        else {
-            int anterior = indiceActual - 1;
-            if (anterior < 0) {
-                if (!loopInfinitoPlaylist) { anterior = 0; }
-                else { anterior = (int)playlist.size() - 1; }
-            }
-            ReproducirIndice(anterior);
+        int anterior = ObtenerAnteriorIndice();
+
+        if (anterior >= 0) {
+            ProgramarCambio(anterior);
         }
     }
 
     void Pausar() {
-        if (sonidoCargado) ma_sound_stop(&sonidoActual);
+        if (sonidoCargado) {
+            ma_sound_stop(&sonidoActual);
+        }
     }
 
     void Reanudar() {
-        if (sonidoCargado) ma_sound_start(&sonidoActual);
+        if (sonidoCargado) {
+            ma_sound_start(&sonidoActual);
+        }
     }
 
     bool EstaSonando() const {
-        return sonidoCargado && ma_sound_is_playing(&sonidoActual);
+        return sonidoCargado &&
+               ma_sound_is_playing(&sonidoActual);
     }
 
-    // Mueve la posicion de reproduccion a un segundo especifico (para una barra de progreso).
     void IrASegundo(float segundos) {
-        if (sonidoCargado) ma_sound_seek_to_second(&sonidoActual, segundos);
+        if (sonidoCargado) {
+            ma_sound_seek_to_second(&sonidoActual, segundos);
+            fadeSalidaIniciado = false;
+            cambioPendiente = false;
+        }
     }
 
     float SegundosTranscurridos() const {
         if (!sonidoCargado) return 0.0f;
+
         float cursor = 0.0f;
         ma_sound_get_cursor_in_seconds(&sonidoActual, &cursor);
         return cursor;
@@ -188,41 +282,79 @@ public:
 
     float DuracionEnSegundos() const {
         if (!sonidoCargado) return 0.0f;
+
         float duracion = 0.0f;
+
         ma_sound_get_length_in_seconds(&sonidoActual, &duracion);
-        return duracion;
+
+        return duracion > 0.0f ? duracion : duracionRespaldo;
     }
 
     std::string NombreCancionActual() const {
-        if (indiceActual < 0 || indiceActual >= (int)playlist.size()) return "";
+        if (indiceActual < 0 ||
+            indiceActual >= static_cast<int>(playlist.size())) {
+            return "";
+        }
+
         return playlist[indiceActual].nombreMostrado;
     }
 
-    int CantidadCanciones() const { return (int)playlist.size(); }
-    bool HayPlaylist() const { return !playlist.empty(); }
+    int CantidadCanciones() const {
+        return static_cast<int>(playlist.size());
+    }
 
-    // -------- Configuracion de modos --------
+    bool HayPlaylist() const {
+        return !playlist.empty();
+    }
 
-    // "Escuchar infinitamente": cuando se acaba la playlist completa, vuelve a empezar.
-    void SetLoopInfinitoPlaylist(bool activo) { loopInfinitoPlaylist = activo; }
-    bool GetLoopInfinitoPlaylist() const { return loopInfinitoPlaylist; }
+    // Configuración de modos.
 
-    // Repetir SOLO la cancion actual en loop (no avanza a la siguiente nunca).
+    void SetLoopInfinitoPlaylist(bool activo) {
+        loopInfinitoPlaylist = activo;
+    }
+
+    bool GetLoopInfinitoPlaylist() const {
+        return loopInfinitoPlaylist;
+    }
+
     void SetSoloUnaCancionEnLoop(bool activo) {
         soloUnaCancionEnLoop = activo;
-        if (sonidoCargado) ma_sound_set_looping(&sonidoActual, activo ? MA_TRUE : MA_FALSE);
-    }
-    bool GetSoloUnaCancionEnLoop() const { return soloUnaCancionEnLoop; }
 
-    // Orden aleatorio (shuffle) en vez de seguir el orden en que se encontraron los archivos.
+        if (sonidoCargado) {
+            ma_sound_set_looping(
+                &sonidoActual,
+                activo ? MA_TRUE : MA_FALSE
+            );
+        }
+    }
+
+    bool GetSoloUnaCancionEnLoop() const {
+        return soloUnaCancionEnLoop;
+    }
+
     void SetModoAleatorio(bool activo) {
         modoAleatorio = activo;
+
         if (activo) BarajearOrden();
     }
-    bool GetModoAleatorio() const { return modoAleatorio; }
+
+    bool GetModoAleatorio() const {
+        return modoAleatorio;
+    }
+
+    // Duración configurable de los fades, en segundos.
+    void SetDuracionFade(float segundos) {
+        if (segundos < 0.0f) segundos = 0.0f;
+        duracionFade = segundos;
+    }
+
+    float GetDuracionFade() const {
+        return duracionFade;
+    }
 
     void Liberar() {
         DetenerYLiberarSonidoActual();
+
         if (motorListo) {
             ma_engine_uninit(&motor);
             motorListo = false;
@@ -244,12 +376,102 @@ private:
     std::vector<CancionInfo> playlist;
     int indiceActual = -1;
 
-    bool loopInfinitoPlaylist = true;   // "escuchar infinitamente" = activo por defecto
+    bool loopInfinitoPlaylist = true;
     bool soloUnaCancionEnLoop = false;
     bool modoAleatorio = false;
 
     std::vector<int> ordenAleatorio;
     int posicionEnOrdenAleatorio = 0;
+
+    float duracionRespaldo = 0.0f;
+
+    // Transiciones.
+    float duracionFade = 1.0f;
+    bool fadeSalidaIniciado = false;
+    bool cambioPendiente = false;
+    int indicePendiente = -1;
+
+    std::chrono::steady_clock::time_point inicioCambio;
+
+    void ProgramarCambio(int destino) {
+        if (!sonidoCargado || destino < 0 ||
+            destino >= static_cast<int>(playlist.size())) {
+            return;
+        }
+
+        if (duracionFade <= 0.0f) {
+            ReproducirIndice(destino);
+            return;
+        }
+
+        indicePendiente = destino;
+        cambioPendiente = true;
+        fadeSalidaIniciado = true;
+        inicioCambio = std::chrono::steady_clock::now();
+
+        ma_sound_set_fade_in_milliseconds(
+            &sonidoActual,
+            1.0f,
+            0.0f,
+            static_cast<ma_uint64>(duracionFade * 1000.0f)
+        );
+    }
+
+    int ObtenerSiguienteIndice() {
+        if (playlist.empty()) return -1;
+
+        if (modoAleatorio) {
+            int siguientePosicion = posicionEnOrdenAleatorio + 1;
+
+            if (siguientePosicion >=
+                static_cast<int>(ordenAleatorio.size())) {
+
+                if (!loopInfinitoPlaylist) return -1;
+
+                BarajearOrden();
+                siguientePosicion = 0;
+            }
+
+            posicionEnOrdenAleatorio = siguientePosicion;
+            return ordenAleatorio[posicionEnOrdenAleatorio];
+        }
+
+        int siguiente = indiceActual + 1;
+
+        if (siguiente >= static_cast<int>(playlist.size())) {
+            if (!loopInfinitoPlaylist) return -1;
+            siguiente = 0;
+        }
+
+        return siguiente;
+    }
+
+    int ObtenerAnteriorIndice() {
+        if (playlist.empty()) return -1;
+
+        if (modoAleatorio) {
+            int anteriorPosicion = posicionEnOrdenAleatorio - 1;
+
+            if (anteriorPosicion < 0) {
+                if (!loopInfinitoPlaylist) return -1;
+
+                anteriorPosicion =
+                    static_cast<int>(ordenAleatorio.size()) - 1;
+            }
+
+            posicionEnOrdenAleatorio = anteriorPosicion;
+            return ordenAleatorio[posicionEnOrdenAleatorio];
+        }
+
+        int anterior = indiceActual - 1;
+
+        if (anterior < 0) {
+            if (!loopInfinitoPlaylist) anterior = 0;
+            else anterior = static_cast<int>(playlist.size()) - 1;
+        }
+
+        return anterior;
+    }
 
     void DetenerYLiberarSonidoActual() {
         if (sonidoCargado) {
@@ -257,13 +479,27 @@ private:
             ma_sound_uninit(&sonidoActual);
             sonidoCargado = false;
         }
+
+        cambioPendiente = false;
+        indicePendiente = -1;
+        fadeSalidaIniciado = false;
     }
 
     void BarajearOrden() {
         ordenAleatorio.resize(playlist.size());
-        for (size_t i = 0; i < playlist.size(); ++i) ordenAleatorio[i] = (int)i;
 
-        std::mt19937 rng((unsigned)std::time(nullptr));
-        std::shuffle(ordenAleatorio.begin(), ordenAleatorio.end(), rng);
+        for (size_t i = 0; i < playlist.size(); ++i) {
+            ordenAleatorio[i] = static_cast<int>(i);
+        }
+
+        std::mt19937 rng(
+            static_cast<unsigned>(std::time(nullptr))
+        );
+
+        std::shuffle(
+            ordenAleatorio.begin(),
+            ordenAleatorio.end(),
+            rng
+        );
     }
 };
