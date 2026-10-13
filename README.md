@@ -129,6 +129,7 @@ Launcher C++ no existiría sin estas herramientas y librerías:
 * [discord-rpc](https://github.com/discord/discord-rpc), de Discord: Discord Rich Presence, para mostrar en tu perfil lo que estás haciendo en el Launcher (licencia MIT).
 * [RapidJSON](https://github.com/Tencent/rapidjson), de Tencent: librería JSON que usa discord-rpc (licencia MIT).
 * [miniaudio](https://github.com/mackron/miniaudio), de David Reid: reproducción de audio del reproductor de música (dominio público o MIT-0, a elección).
+* [stb](https://github.com/nothings/stb), de Sean Barrett y colaboradores: biblioteca que incluye `stb_vorbis`, utilizada para la decodificación de audio OGG Vorbis (dominio público o MIT, según los términos aplicables).
 
 Las licencias de estas librerías están en la carpeta [`ThirdParty-Licenses`](ThirdParty-Licenses).
 
